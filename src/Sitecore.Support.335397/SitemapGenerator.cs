@@ -34,6 +34,11 @@
             alternateUrlOptions.LanguageEmbedding = LanguageEmbedding.Always;
             var sitemapLinkOptionsForAlternateLinks = new SitemapLinkOptions(options.Scheme, alternateUrlOptions, options.TargetHostname);
 
+            //x-default alternate URL should never have language embedded
+            var xDefaultOptions = (UrlOptions)sitemapLinkOptionsForAlternateLinks.UrlOptions.Clone();
+            xDefaultOptions.LanguageEmbedding = LanguageEmbedding.Never;
+            var sitemapLinkOptionsForXDefaultLink = new SitemapLinkOptions(options.Scheme, xDefaultOptions, options.TargetHostname);
+
             var pages = new List<XElement>();
             foreach (var item in childrenTree)
             {
@@ -55,7 +60,20 @@
                         var alternate = BuildAlternateLinkElement(href, hreflang);
                         alternateUrls.Add(alternate);
                     }
-                }                
+                }
+                if (alternateUrls.Count >= 2)
+                {
+                    sitemapLinkOptions.UrlOptions.LanguageEmbedding = LanguageEmbedding.Always;
+                    // generate x-default
+                    var href = GetFullLink(item, sitemapLinkOptionsForXDefaultLink);
+                    var hreflang = "x-default";
+                    var alternate = BuildAlternateLinkElement(href, hreflang);
+                    alternateUrls.Insert(0, alternate);
+                }
+                else
+                {
+                    sitemapLinkOptions.UrlOptions.LanguageEmbedding = LanguageEmbedding.Never;
+                }
 
                 sitemapLinkOptions.UrlOptions.Language = item.Language;
                 var loc = GetFullLink(item, sitemapLinkOptions);
